@@ -11,9 +11,12 @@ node_modules/
 .env.production.local
 .env.*
 !.env.example
+!backend/.env.example
+!frontend/.env.example
 
 # Graphify (only include documentation and graph report, ignore bulky internal caches/data)
 graphify-out/*
+.graphifyignore
 !graphify-out/GRAPH_REPORT.md
 !graphify-out/wiki/
 !graphify-out/wiki/**
@@ -77,3 +80,10 @@ next-env.d.ts
 # Local reference documents (not for version control)
 solution.md
 solutioncopi.md
+.neon
+AGENTS.md
+CLAUDE.md
+GOOGLE_AI_STUDIO.md
+design.md
+plan.md
+GEMINI.md
