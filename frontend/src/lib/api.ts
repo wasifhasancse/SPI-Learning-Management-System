@@ -48,16 +48,46 @@ export async function getJwtToken(): Promise<string | null> {
   return data.token;
 }
 
-/**
- * Get all courses
- */
-export async function fetchCourses(): Promise<Course[]> {
+const COURSE_CACHE_MS = 15_000;
+let courseCache: { data: Course[]; expiresAt: number } | undefined;
+let courseRequest: Promise<Course[]> | undefined;
+let courseCacheVersion = 0;
+
+function invalidateCourseCache() {
+  courseCache = undefined;
+  courseRequest = undefined;
+  courseCacheVersion++;
+}
+
+async function requestCourses(): Promise<Course[]> {
   if (!API_BASE_URL) throw new Error('SERVER_URL is not configured.');
   const res = await fetch(`${API_BASE_URL}/api/courses`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to load courses (HTTP ${res.status}).`);
   const json: ApiResponse<Course[]> = await res.json();
   if (!json.success || !Array.isArray(json.data)) throw new Error(json.message || 'Invalid courses response.');
   return json.data;
+}
+
+/**
+ * Get all courses. Public catalog views can reuse a recent result.
+ */
+export async function fetchCourses(options?: { preferCache?: boolean }): Promise<Course[]> {
+  if (!options?.preferCache) return requestCourses();
+  if (courseCache && courseCache.expiresAt > Date.now()) return courseCache.data;
+  if (courseRequest) return courseRequest;
+
+  const version = courseCacheVersion;
+  const request = requestCourses();
+  courseRequest = request;
+  try {
+    const data = await request;
+    if (version === courseCacheVersion) {
+      courseCache = { data, expiresAt: Date.now() + COURSE_CACHE_MS };
+    }
+    return data;
+  } finally {
+    if (courseRequest === request) courseRequest = undefined;
+  }
 }
 
 /**
@@ -144,6 +174,7 @@ export async function createCourse(
   if (!res.ok || !json.success) {
     throw new Error(json.message || 'Failed to create course');
   }
+  invalidateCourseCache();
   return json.data;
 }
 
@@ -170,6 +201,7 @@ export async function updateCourse(
   if (!res.ok || !json.success) {
     throw new Error(json.message || 'Failed to update course');
   }
+  invalidateCourseCache();
   return json.data;
 }
 
@@ -193,6 +225,7 @@ export async function deleteCourse(
   if (!res.ok || !json.success) {
     throw new Error(json.message || 'Failed to delete course');
   }
+  invalidateCourseCache();
   return json.data;
 }
 
@@ -219,6 +252,7 @@ export async function createLecture(
   if (!res.ok || !json.success) {
     throw new Error(json.message || 'Failed to create lecture');
   }
+  invalidateCourseCache();
   return json.data;
 }
 
@@ -245,6 +279,7 @@ export async function updateLecture(
   if (!res.ok || !json.success) {
     throw new Error(json.message || 'Failed to update lecture');
   }
+  invalidateCourseCache();
   return json.data;
 }
 
@@ -268,5 +303,6 @@ export async function deleteLecture(
   if (!res.ok || !json.success) {
     throw new Error(json.message || 'Failed to delete lecture');
   }
+  invalidateCourseCache();
   return json.data;
 }

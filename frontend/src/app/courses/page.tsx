@@ -6,6 +6,8 @@ import { HiAcademicCap, HiAdjustmentsHorizontal, HiBookOpen, HiMagnifyingGlass, 
 import CourseCard from "@/components/CourseCard";
 import { Course, fetchCourses } from "@/lib/api";
 
+const COURSES_PER_PAGE = 9;
+
 export default function CoursesPage({ searchParams }: { searchParams: Promise<{ search?: string | string[] }> }) {
   const params = use(searchParams);
   const initialSearch = typeof params.search === "string" ? params.search : "";
@@ -18,12 +20,13 @@ function CourseCatalog({ initialSearch }: { initialSearch: string }) {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all");
   const [sortBy, setSortBy] = useState<"newest" | "price-asc" | "price-desc">("newest");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let active = true;
-    fetchCourses()
+    fetchCourses({ preferCache: true })
       .then((data) => { if (active) setCourses(data); })
       .catch((err: unknown) => { console.error("Failed to load courses:", err); if (active) setError(true); })
       .finally(() => { if (active) setLoading(false); });
@@ -42,10 +45,16 @@ function CourseCatalog({ initialSearch }: { initialSearch: string }) {
     return result;
   }, [courses, searchQuery, priceFilter, sortBy]);
 
+  const totalPages = Math.ceil(filteredCourses.length / COURSES_PER_PAGE);
+  const currentPage = Math.min(page, Math.max(totalPages, 1));
+  const startIndex = (currentPage - 1) * COURSES_PER_PAGE;
+  const visibleCourses = filteredCourses.slice(startIndex, startIndex + COURSES_PER_PAGE);
+
   const clearFilters = () => {
     setSearchQuery("");
     setPriceFilter("all");
     setSortBy("newest");
+    setPage(1);
     if (initialSearch) router.replace("/courses", { scroll: false });
   };
   const hasFilters = Boolean(searchQuery || priceFilter !== "all" || sortBy !== "newest");
@@ -60,7 +69,7 @@ function CourseCatalog({ initialSearch }: { initialSearch: string }) {
             <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-800 shadow-sm"><HiBookOpen className="h-6 w-6" /></span>Explore all courses</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Find a course, browse its lesson plan, and start learning at your own pace.</p>
           </div>
-          <div className="inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white bg-white/90 px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm"><span className="h-2 w-2 rounded-full bg-emerald-500" />{loading ? "Loading courses..." : error ? "Courses unavailable" : `Showing ${filteredCourses.length} of ${courses.length} courses`}</div>
+          <div role="status" className="inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white bg-white/90 px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm"><span className="h-2 w-2 rounded-full bg-emerald-500" />{loading ? "Loading courses..." : error ? "Courses unavailable" : filteredCourses.length ? `Showing ${startIndex + 1}–${startIndex + visibleCourses.length} of ${filteredCourses.length} matching courses` : "No matching courses"}</div>
         </div>
       </div>
 
@@ -72,20 +81,20 @@ function CourseCatalog({ initialSearch }: { initialSearch: string }) {
         <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(240px,1fr)_auto] lg:items-end">
           <div>
             <label htmlFor="course-catalog-search" className="mb-2 block text-xs font-bold text-slate-700">Search courses</label>
-            <div className="relative"><HiMagnifyingGlass aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input id="course-catalog-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Try a course title or topic" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#A8DF8E] focus:bg-white focus:ring-4 focus:ring-[#A8DF8E]/20" /></div>
+            <div className="relative"><HiMagnifyingGlass aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input id="course-catalog-search" type="search" value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setPage(1); }} placeholder="Try a course title or topic" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#A8DF8E] focus:bg-white focus:ring-4 focus:ring-[#A8DF8E]/20" /></div>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <fieldset>
               <legend className="mb-2 block text-xs font-bold text-slate-700">Price</legend>
               <div className="flex items-center rounded-xl bg-slate-100 p-1">
-                {(["all", "free", "paid"] as const).map((price) => <button key={price} type="button" aria-pressed={priceFilter === price} onClick={() => setPriceFilter(price)} className={`rounded-lg px-4 py-2 text-xs font-bold capitalize transition ${priceFilter === price ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>{price}</button>)}
+                {(["all", "free", "paid"] as const).map((price) => <button key={price} type="button" aria-pressed={priceFilter === price} onClick={() => { setPriceFilter(price); setPage(1); }} className={`rounded-lg px-4 py-2 text-xs font-bold capitalize transition ${priceFilter === price ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>{price}</button>)}
               </div>
             </fieldset>
             <div>
               <label htmlFor="course-sort" className="mb-2 block text-xs font-bold text-slate-700">Sort by</label>
               <select id="course-sort" value={sortBy} onChange={(event) => {
                 const value = event.target.value;
-                if (value === "newest" || value === "price-asc" || value === "price-desc") setSortBy(value);
+                if (value === "newest" || value === "price-asc" || value === "price-desc") { setSortBy(value); setPage(1); }
               }} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 outline-none transition focus:border-[#A8DF8E] focus:ring-4 focus:ring-[#A8DF8E]/20">
                 <option value="newest">Newest first</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option>
               </select>
@@ -108,7 +117,16 @@ function CourseCatalog({ initialSearch }: { initialSearch: string }) {
           {hasFilters && <button type="button" onClick={clearFilters} className="btn-primary mt-6 text-sm"><HiXMark className="h-4 w-4" />Clear filters</button>}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{filteredCourses.map((course) => <CourseCard key={course.id} course={course} />)}</div>
+        <>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{visibleCourses.map((course) => <CourseCard key={course.id} course={course} />)}</div>
+          {totalPages > 1 && (
+            <nav aria-label="Course pagination" className="flex flex-wrap items-center justify-center gap-4">
+              <button type="button" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 1} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-[#A8DF8E] hover:bg-[#F0FFDF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+              <span className="text-sm font-semibold text-slate-600">Page {currentPage} of {totalPages}</span>
+              <button type="button" onClick={() => setPage(currentPage + 1)} disabled={currentPage === totalPages} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-[#A8DF8E] hover:bg-[#F0FFDF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+            </nav>
+          )}
+        </>
       )}
     </div>
   );

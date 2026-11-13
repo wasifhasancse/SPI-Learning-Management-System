@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Marquee from "react-fast-marquee";
 import { HiAcademicCap, HiAdjustmentsHorizontal, HiArrowRight, HiBookOpen, HiCheckCircle, HiMagnifyingGlass, HiPlayCircle, HiShieldCheck, HiVideoCamera } from "react-icons/hi2";
 import CourseCard from "@/components/CourseCard";
 import { Course, fetchCourses } from "@/lib/api";
@@ -13,10 +15,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
+  const [marqueePlaying, setMarqueePlaying] = useState(true);
 
   useEffect(() => {
     let active = true;
-    fetchCourses()
+    fetchCourses({ preferCache: true })
       .then((data) => { if (active) setCourses(data); })
       .catch((err: unknown) => { console.error("Failed to load courses:", err); if (active) setError(true); })
       .finally(() => { if (active) setLoading(false); });
@@ -33,13 +36,15 @@ export default function HomePage() {
 
   return (
     <div className="bg-white">
-      <section className="relative overflow-hidden bg-[#F0FFDF]">
-        <div className="container-custom grid min-h-[540px] items-center gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#F0FFDF] via-[#f8fff2] to-[#ffeef1]">
+        <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-[#A8DF8E]/30 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-[#FFAAB8]/25 blur-3xl" />
+        <div className="container-custom relative grid min-h-[540px] items-center gap-12 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-20">
           <div className="relative z-10 max-w-2xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#A8DF8E] bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-emerald-900"><HiAcademicCap className="h-4 w-4" />Practical online learning</div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#A8DF8E] bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-emerald-900 shadow-sm"><HiAcademicCap className="h-4 w-4" />Practical online learning</div>
             <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.12] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">Learn skills that move your <span className="text-emerald-800">future forward.</span></h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">Explore focused courses, follow clear lesson sequences, and learn at your own pace with SPI LMS.</p>
-            <form onSubmit={submitSearch} className="mt-8 flex max-w-xl gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+            <form onSubmit={submitSearch} className="mt-8 flex max-w-xl gap-2 rounded-2xl border border-white bg-white p-2 shadow-[0_12px_35px_rgba(27,65,41,0.1)] focus-within:ring-2 focus-within:ring-emerald-700">
               <label htmlFor="course-search" className="sr-only">Search courses</label>
               <div className="flex min-w-0 flex-1 items-center gap-3 px-3"><HiMagnifyingGlass className="h-5 w-5 shrink-0 text-slate-400" /><input id="course-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="What would you like to learn?" className="w-full bg-transparent py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400" /></div>
               <button type="submit" className="btn-primary shrink-0 !rounded-xl !px-3 text-xs sm:!px-5 sm:text-sm">Find a course</button>
@@ -50,20 +55,43 @@ export default function HomePage() {
               <span className="inline-flex items-center gap-2"><HiShieldCheck className="h-4 w-4 text-emerald-700" />Secure course management</span>
             </div>
           </div>
-          <div className="relative mx-auto w-full max-w-xl">
-            <div className="absolute -left-8 top-10 h-24 w-24 rounded-full bg-[#FFD8DF] blur-2xl" />
-            <div className="absolute -right-3 bottom-8 h-32 w-32 rounded-full bg-[#A8DF8E] blur-2xl" />
-            <div className="relative rounded-[2rem] border border-white bg-white p-3 shadow-[0_24px_70px_rgba(31,41,55,0.12)]">
-              {loading ? (
-                <div role="status" aria-label="Loading featured course" className="h-[300px] animate-pulse rounded-[1.5rem] bg-[#F0FFDF] sm:h-[360px] motion-reduce:animate-none" />
-              ) : featuredCourse?.thumbnail_url ? (
-                <img src={featuredCourse.thumbnail_url} alt="" className="h-[300px] w-full rounded-[1.5rem] object-cover sm:h-[360px]" />
-              ) : (
-                <div className="flex h-[300px] flex-col items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-white via-[#F0FFDF] to-[#FFD8DF] sm:h-[360px]"><div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white text-emerald-800 shadow-sm"><HiAcademicCap className="h-10 w-10" /></div><p className="mt-5 text-sm font-bold text-slate-700">Your next skill starts here</p></div>
-              )}
-              {featuredCourse && <Link href={`/courses/${featuredCourse.id}`} className="absolute bottom-7 left-7 right-7 flex items-center justify-between gap-4 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur transition hover:-translate-y-0.5"><span className="min-w-0"><span className="block text-[11px] font-bold uppercase tracking-wider text-emerald-800">Featured course</span><span className="mt-1 block truncate text-sm font-bold text-slate-900">{featuredCourse.title}</span></span><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#A8DF8E] text-slate-900"><HiPlayCircle className="h-6 w-6" /></span></Link>}
+          <div className="relative mx-auto w-full max-w-xl pb-6 pr-3 sm:pb-8 sm:pr-8">
+            <div aria-hidden="true" className="absolute inset-4 translate-x-3 translate-y-3 rounded-[2.5rem] bg-[#A8DF8E]/60 sm:translate-x-5 sm:translate-y-5" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-white bg-white p-3 shadow-[0_24px_70px_rgba(31,41,55,0.12)] sm:p-4">
+              <Image src="https://img.magnific.com/free-vector/online-tutorials-concept_52683-37480.jpg?semt=ais_hybrid&w=740&q=80" alt="Illustration of online learning and tutorials" width={740} height={493} preload unoptimized className="aspect-[3/2] w-full rounded-[1.5rem] object-contain" />
+            </div>
+            {featuredCourse ? (
+              <Link href={`/courses/${featuredCourse.id}`} className="absolute -bottom-1 left-4 right-6 flex items-center gap-3 rounded-2xl border border-white bg-white px-4 py-3 shadow-[0_12px_35px_rgba(31,41,55,0.14)] transition hover:-translate-y-0.5 sm:left-8 sm:right-auto sm:max-w-[85%]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F0FFDF] text-emerald-800"><HiPlayCircle className="h-6 w-6" /></span>
+                <span className="min-w-0"><span className="block text-xs font-extrabold text-emerald-800">Featured course</span><span className="mt-1 block truncate text-xs font-semibold text-slate-700">{featuredCourse.title}</span></span>
+              </Link>
+            ) : (
+              <div className="absolute -bottom-1 left-4 flex items-center gap-3 rounded-2xl border border-white bg-white px-4 py-3 shadow-[0_12px_35px_rgba(31,41,55,0.14)] sm:left-8">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0FFDF] text-emerald-800"><HiPlayCircle className="h-6 w-6" /></span>
+                <span><span className="block text-xs font-extrabold text-slate-900">Learn at your pace</span><span className="mt-1 block text-xs text-slate-500">Lessons whenever you&apos;re ready</span></span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Learning highlights" className="border-y border-emerald-900/10 text-black/80 bg-[#F0FFDF]/60">
+        <div className="container-custom flex items-center gap-4 py-4 sm:gap-6">
+          <span className="hidden shrink-0 rounded-full bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-[#006045] sm:inline-flex">Why SPI LMS</span>
+          <p className="sr-only">Explore courses, follow structured lessons, and learn at your own pace.</p>
+          <div aria-hidden="true" className="min-w-0 flex-1">
+            <div className="motion-reduce:hidden">
+              <Marquee autoFill play={marqueePlaying} pauseOnHover speed={35}>
+                {["Explore courses", "Structured video lessons", "Learn at your own pace", "Your next skill starts here"].map((item) => (
+                  <span key={item} className="inline-flex items-center gap-4 pr-8 text-sm font-bold tracking-wide"><span className="h-2 w-2 rounded-full bg-[#FFAAB8]" />{item}</span>
+                ))}
+              </Marquee>
+            </div>
+            <div className="hidden flex-wrap gap-x-5 gap-y-2 text-sm font-bold motion-reduce:flex">
+              <span>Explore courses</span><span>Structured video lessons</span><span>Learn at your own pace</span><span>Your next skill starts here</span>
             </div>
           </div>
+          {/* <button type="button" onClick={() => setMarqueePlaying((playing) => !playing)} className="shrink-0 rounded-full border border-white/30 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:hidden">{marqueePlaying ? "Pause" : "Play"} <span className="sr-only">learning highlights</span></button> */}
         </div>
       </section>
 
@@ -183,7 +211,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="container-custom pb-14">
-        <div className="flex flex-col items-start justify-between gap-5 rounded-3xl bg-slate-900 px-7 py-9 text-white sm:flex-row sm:items-center sm:px-10"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A8DF8E]">Your learning space</p><h2 className="mt-2 text-2xl font-extrabold">Ready to find your next lesson?</h2><p className="mt-2 text-sm text-slate-300">Browse the course library and find your next lesson.</p></div><Link href="/courses" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#A8DF8E] px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-[#b9e8a4]">Browse courses <HiArrowRight className="h-4 w-4" /></Link></div>
+        <div className="flex flex-col items-start justify-between gap-5 rounded-3xl bg-[#006045] px-7 py-9 text-white sm:flex-row sm:items-center sm:px-10"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A8DF8E]">Your learning space</p><h2 className="mt-2 text-2xl font-extrabold">Ready to find your next lesson?</h2><p className="mt-2 text-sm text-slate-300">Browse the course library and find your next lesson.</p></div><Link href="/courses" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#A8DF8E] px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-[#b9e8a4]">Browse courses <HiArrowRight className="h-4 w-4" /></Link></div>
       </section>
     </div>
   );

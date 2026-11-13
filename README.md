@@ -17,7 +17,9 @@ A simplified, production-ready Learning Management System developed with **Next.
 
 ### 1. Student Panel
 - **Course Catalog**: Dynamic course listing fetched directly from Neon PostgreSQL, displaying title, price, lecture count, and thumbnail.
+- **Fast catalog navigation**: The home and catalog pages reuse course results for up to 15 seconds while navigating without a full reload. Course or lecture changes made in that page session invalidate the cached result; changes from other sessions appear on the next fetch after expiry.
 - **Search & Filter**: Real-time course filtering by title or keywords.
+- **Pagination**: The course catalog displays nine matching courses per page; search, price filters, and sorting apply before pagination.
 - **Course Details & Lectures**: Dedicated curriculum overview displaying lessons and course summary.
 - **Embedded Video Player**: Watch lectures through embedded video players (supports YouTube watch & embed URLs, Vimeo, and direct MP4/WebM files) with instant lesson switching.
 - **Expanded Navigation**: Dedicated pages for Home, Courses, About, Contact, Sign In, and Sign Up with profile dropdown matching user specifications.
