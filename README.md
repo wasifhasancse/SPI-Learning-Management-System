@@ -135,6 +135,7 @@ The health endpoint reports that the API is running; it does not independently v
 ### Authentication and access
 
 - Email/password sign-up and sign-in use Better Auth.
+- Successful sign-in opens the management dashboard. Next.js Proxy checks the Better Auth session for `/admin` and `/dashboard` routes and redirects signed-out visitors to `/admin/login`.
 - The frontend requests JWTs for protected API operations; the Express API verifies them against the frontend's JWKS endpoint.
 - Browsing courses and lessons does not require an account.
 
@@ -186,8 +187,8 @@ Protected requests require a Bearer JWT issued by the frontend authentication se
 Run these commands from the repository root:
 
 ```powershell
-# Frontend API tests
-node --test frontend\test\api.test.mjs
+# Frontend API and proxy tests
+node --test frontend\test\api.test.mjs frontend\test\proxy.test.mjs
 
 # Backend build and tests
 npm run build --prefix backend

@@ -87,11 +87,11 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <HiPhone className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>+1 (800) 555-0199</span>
+                <span>+880 123 456 789</span>
               </li>
               <li className="flex items-center gap-2">
                 <HiMapPin className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>San Francisco, CA, USA</span>
+                <span>Uttara, Dhaka, Bangladesh</span>
               </li>
             </ul>
           </div>
@@ -103,11 +103,11 @@ export default function Footer() {
             Copyright (c) 2026 SPI Learning Management System. All rights reserved.
           </div>
           <div className="flex items-center gap-4 text-gray-500 text-xs">
-            <span>Neon PostgreSQL</span>
-            <span>/</span>
-            <span>Express MVC TypeScript</span>
-            <span>/</span>
-            <span>Next.js 16</span>
+            <span>Terms & Conditions</span>
+            <span>|</span>
+            <span>Privacy Policy</span>
+            <span>|</span>
+            <span>Cookie Policy</span>
           </div>
         </div>
       </div>

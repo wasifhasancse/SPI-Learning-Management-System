@@ -146,7 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
             <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Administrator</span>
-            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 transition hover:bg-[#FFD8DF]/70 hover:text-rose-900"><HiArrowRightOnRectangle className="h-3.5 w-3.5" /> Sign out</button>
+            <button type="button" onClick={handleLogout} className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 transition hover:bg-[#FFD8DF]/70 hover:text-rose-900"><HiArrowRightOnRectangle className="h-3.5 w-3.5" /> Sign out</button>
           </div>
         </div>
       </div>

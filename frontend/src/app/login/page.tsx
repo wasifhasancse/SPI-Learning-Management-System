@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "@/lib/auth-client";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import {
   HiLockClosed,
   HiEnvelope,
@@ -37,7 +38,7 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error.message || "Invalid email or password.");
       } else {
-        router.push("/courses");
+        router.replace("/admin");
         router.refresh();
       }
     } catch (err: any) {
@@ -89,8 +90,8 @@ export default function LoginPage() {
                 <HiCheckCircle className="w-4 h-4 text-emerald-700" />
                 <span>Signed in as {session.user.name}</span>
               </div>
-              <Link href="/courses" className="font-bold underline">
-                Go to Courses
+              <Link href="/admin" className="font-bold underline">
+                Go to Dashboard
               </Link>
             </div>
           )}
@@ -140,7 +141,7 @@ export default function LoginPage() {
               className="w-full btn-primary !py-3 text-sm font-bold uppercase tracking-wider mt-2"
             >
               {loading ? (
-                <span>Signing in...</span>
+                <><LoadingSpinner inline label="Signing in" /><span>Signing in...</span></>
               ) : (
                 <>
                   <span>Sign In</span>
